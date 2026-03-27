@@ -1,0 +1,83 @@
+# API Endpoint Wordlist — Module 8 Lab
+# Used with: ffuf -u http://localhost:5000/api/FUZZ -w wordlist.txt
+
+# Common API paths
+users
+user
+login
+logout
+register
+signup
+profile
+me
+account
+
+# Admin / privileged
+admin
+admin/users
+admin/secret
+admin/dashboard
+admin/config
+admin/panel
+admin/logs
+superuser
+root
+
+# Data endpoints
+orders
+order
+documents
+document
+files
+file
+records
+
+# Developer / debug (often forgotten)
+debug
+debug/config
+debug/info
+config
+settings
+env
+environment
+metrics
+stats
+status
+health
+ping
+version
+info
+
+# Backup / internal
+backup
+backups
+internal
+internal/metrics
+logs
+log
+trace
+test
+dev
+
+# Auth & tokens
+token
+tokens
+refresh
+reset
+forgot
+verify
+oauth
+keys
+apikey
+api-key
+
+# Sensitive data targets
+payments
+billing
+invoice
+invoices
+credit-cards
+ssn
+secrets
+keys
+private

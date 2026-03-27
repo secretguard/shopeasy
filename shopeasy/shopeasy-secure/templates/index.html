@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% block title %}ShopEasy — Amazing deals, delivered fast{% endblock %}
+{% block nav_shop %}active{% endblock %}
+
+{% block extra_style %}
+.hero {
+  background: linear-gradient(135deg, #fff5f2 0%, #f0f4ff 100%);
+  border-radius: 24px; padding: 4rem 3rem;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 3rem;
+  align-items: center; margin-bottom: 3rem; overflow: hidden; position: relative;
+}
+.hero::before {
+  content:''; position:absolute; top:-60px; right:-60px;
+  width:320px; height:320px; border-radius:50%;
+  background: radial-gradient(circle, rgba(255,107,53,0.12) 0%, transparent 70%);
+  pointer-events:none;
+}
+.hero-eyebrow { font-size:0.8rem; font-weight:700; color:var(--primary); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:0.75rem; }
+.hero h1 { font-family:var(--display); font-size:clamp(2rem,4vw,3rem); font-weight:900; line-height:1.1; letter-spacing:-0.03em; margin-bottom:1rem; }
+.hero h1 span { color:var(--primary); }
+.hero p { color:var(--muted); font-size:1.05rem; margin-bottom:2rem; max-width:420px; }
+.hero-actions { display:flex; gap:1rem; flex-wrap:wrap; }
+.hero-visual { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+.hero-card {
+  background:white; border-radius:var(--radius); padding:1.25rem;
+  box-shadow:var(--shadow); text-align:center; transition:transform 0.2s;
+}
+.hero-card:hover { transform:translateY(-4px); }
+.hero-card .emoji { font-size:2.5rem; margin-bottom:0.5rem; display:block; }
+.hero-card .price { font-family:var(--display); font-weight:800; color:var(--primary); }
+.hero-card .name { font-size:0.8rem; color:var(--muted); margin-top:0.2rem; }
+
+.section-title { font-family:var(--display); font-size:1.5rem; font-weight:900; margin-bottom:0.25rem; }
+.section-title span { color:var(--primary); }
+.section-sub { color:var(--muted); font-size:0.9rem; margin-bottom:2rem; }
+
+.categories { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:1rem; margin-bottom:3rem; }
+.cat-card {
+  background:var(--surface); border:1.5px solid var(--border); border-radius:var(--radius);
+  padding:1.5rem 1rem; text-align:center; cursor:pointer;
+  transition:all 0.2s; text-decoration:none; color:var(--text);
+}
+.cat-card:hover { border-color:var(--primary); background:var(--primary-light); transform:translateY(-2px); }
+.cat-card .emoji { font-size:2rem; display:block; margin-bottom:0.5rem; }
+.cat-card .name { font-weight:700; font-size:0.875rem; }
+
+.products-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:1.25rem; margin-bottom:3rem; }
+.product-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius); overflow:hidden;
+  transition:all 0.2s; cursor:pointer;
+}
+.product-card:hover { transform:translateY(-4px); box-shadow:var(--shadow-lg); border-color:var(--primary); }
+.product-card-img {
+  background:linear-gradient(135deg,#fff5f2,#f0f4ff);
+  height:160px; display:flex; align-items:center; justify-content:center;
+  font-size:4rem;
+}
+.product-card-body { padding:1rem; }
+.product-card-name { font-weight:700; font-size:0.92rem; margin-bottom:0.25rem; }
+.product-card-desc { font-size:0.78rem; color:var(--muted); margin-bottom:0.75rem; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.product-card-footer { display:flex; align-items:center; justify-content:space-between; }
+.product-card-price { font-family:var(--display); font-weight:800; font-size:1.1rem; color:var(--primary); }
+.btn-add { background:var(--primary-light); color:var(--primary); border:none; border-radius:100px; padding:0.35rem 0.85rem; font-weight:700; font-size:0.8rem; transition:all 0.15s; }
+.btn-add:hover { background:var(--primary); color:white; }
+
+.trust-bar { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:1rem; margin-bottom:3rem; }
+.trust-item { display:flex; align-items:center; gap:0.75rem; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm); padding:1rem 1.25rem; }
+.trust-item .icon { font-size:1.5rem; flex-shrink:0; }
+.trust-item .text .title { font-weight:700; font-size:0.875rem; }
+.trust-item .text .sub { font-size:0.75rem; color:var(--muted); }
+
+@media(max-width:700px){ .hero { grid-template-columns:1fr; } .hero-visual { display:none; } }
+{% endblock %}
+
+{% block content %}
+<!-- HERO -->
+<div class="hero">
+  <div>
+    <div class="hero-eyebrow">✨ New arrivals every week</div>
+    <h1>Shop smarter,<br>save <span>bigger</span></h1>
+    <p>Thousands of products across electronics, fashion, sports and more — all delivered to your door.</p>
+    <div class="hero-actions">
+      <a href="/shop" class="btn btn-primary btn-lg">Browse All Products</a>
+      <a href="/register" class="btn btn-ghost btn-lg">Join Free</a>
+    </div>
+  </div>
+  <div class="hero-visual" id="hero-products"></div>
+</div>
+
+<!-- TRUST BAR -->
+<div class="trust-bar">
+  <div class="trust-item"><span class="icon">🚚</span><div class="text"><div class="title">Free Delivery</div><div class="sub">On orders over $50</div></div></div>
+  <div class="trust-item"><span class="icon">🔄</span><div class="text"><div class="title">Easy Returns</div><div class="sub">30-day hassle-free</div></div></div>
+  <div class="trust-item"><span class="icon">🔒</span><div class="text"><div class="title">Secure Checkout</div><div class="sub">256-bit encryption</div></div></div>
+  <div class="trust-item"><span class="icon">💬</span><div class="text"><div class="title">24/7 Support</div><div class="sub">Chat, email, phone</div></div></div>
+</div>
+
+<!-- CATEGORIES -->
+<h2 class="section-title">Shop by <span>category</span></h2>
+<p class="section-sub">Find exactly what you're looking for</p>
+<div class="categories">
+  <a href="/shop?cat=Electronics" class="cat-card"><span class="emoji">📱</span><span class="name">Electronics</span></a>
+  <a href="/shop?cat=Footwear" class="cat-card"><span class="emoji">👟</span><span class="name">Footwear</span></a>
+  <a href="/shop?cat=Kitchen" class="cat-card"><span class="emoji">🍳</span><span class="name">Kitchen</span></a>
+  <a href="/shop?cat=Sports" class="cat-card"><span class="emoji">⚽</span><span class="name">Sports</span></a>
+  <a href="/shop?cat=Bags" class="cat-card"><span class="emoji">🎒</span><span class="name">Bags</span></a>
+  <a href="/shop?cat=Accessories" class="cat-card"><span class="emoji">🕶️</span><span class="name">Accessories</span></a>
+</div>
+
+<!-- FEATURED -->
+<h2 class="section-title">🔥 <span>Featured</span> products</h2>
+<p class="section-sub">Handpicked by our team this week</p>
+<div class="products-grid" id="products-grid">
+  <!-- loaded via JS -->
+  <div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--muted)">Loading products…</div>
+</div>
+{% endblock %}
+
+{% block extra_script %}
+<script>
+(async () => {
+  const products = await API.get('/api/products');
+
+  // Hero mini cards (first 4)
+  const heroEl = document.getElementById('hero-products');
+  if (heroEl) {
+    products.slice(0,4).forEach(p => {
+      heroEl.innerHTML += `
+        <div class="hero-card" onclick="location.href='/product/${p.id}'">
+          <span class="emoji">${p.image_emoji}</span>
+          <div class="price">$${p.price.toFixed(2)}</div>
+          <div class="name">${p.name}</div>
+        </div>`;
+    });
+  }
+
+  // Main grid
+  const grid = document.getElementById('products-grid');
+  grid.innerHTML = '';
+  products.forEach(p => {
+    grid.innerHTML += `
+      <div class="product-card" onclick="location.href='/product/${p.id}'">
+        <div class="product-card-img">${p.image_emoji}</div>
+        <div class="product-card-body">
+          <div class="product-card-name">${p.name}</div>
+          <div class="product-card-desc">${p.description}</div>
+          <div class="product-card-footer">
+            <span class="product-card-price">$${p.price.toFixed(2)}</span>
+            <button class="btn-add" onclick="addToCart(event,${p.id},'${p.name}',${p.price},'${p.image_emoji}')">+ Add</button>
+          </div>
+        </div>
+      </div>`;
+  });
+})();
+
+function addToCart(e, id, name, price, emoji) {
+  e.stopPropagation();
+  const cart = getCart();
+  const existing = cart.find(i => i.id === id);
+  if (existing) existing.qty++;
+  else cart.push({id, name, price, emoji, qty:1});
+  localStorage.setItem('se_cart', JSON.stringify(cart));
+  updateCartBadge();
+  toast('Added to cart! 🛒', 'success');
+}
+</script>
+{% endblock %}

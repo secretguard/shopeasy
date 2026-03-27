@@ -1,0 +1,7 @@
+services:
+  shopeasy:
+    build: .
+    container_name: shopeasy-lab
+    ports:
+      - "5000:5000"
+    restart: unless-stopped

@@ -1,0 +1,21 @@
+services:
+
+  # ── Vulnerable version ──────────────────────────────────
+  # http://localhost:5000
+  shopeasy-vulnerable:
+    build: ./shopeasy-vulnerable
+    container_name: shopeasy-vulnerable
+    ports:
+      - "5000:5000"
+    restart: unless-stopped
+
+  # ── Secure version ──────────────────────────────────────
+  # http://localhost:5001
+  shopeasy-secure:
+    build: ./shopeasy-secure
+    container_name: shopeasy-secure
+    ports:
+      - "5001:5001"
+    restart: unless-stopped
+    environment:
+      - JWT_SECRET=a-strong-random-secret-64-chars-minimum-never-hardcode-this

@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}Product — ShopEasy{% endblock %}
+
+{% block extra_style %}
+.product-layout { display:grid; grid-template-columns:1fr 1.2fr; gap:3rem; align-items:start; }
+@media(max-width:700px){ .product-layout { grid-template-columns:1fr; } }
+.product-img-box { background:linear-gradient(135deg,#fff5f2,#f0f4ff); border-radius:24px; aspect-ratio:1; display:flex; align-items:center; justify-content:center; font-size:8rem; }
+.product-cat { font-size:0.8rem; font-weight:700; color:var(--secondary); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.5rem; }
+.product-name { font-family:var(--display); font-size:1.8rem; font-weight:900; line-height:1.15; margin-bottom:0.75rem; }
+.product-price { font-family:var(--display); font-size:2rem; font-weight:900; color:var(--primary); margin-bottom:1.25rem; }
+.product-desc { color:var(--muted); line-height:1.75; margin-bottom:1.5rem; }
+.stock-badge { display:inline-flex; align-items:center; gap:6px; font-size:0.82rem; font-weight:700; color:#0a9e75; background:#e8faf5; padding:0.3rem 0.75rem; border-radius:100px; margin-bottom:1.25rem; }
+.stock-dot { width:8px; height:8px; border-radius:50%; background:var(--success); }
+.qty-row { display:flex; align-items:center; gap:1rem; margin-bottom:1.5rem; }
+.qty-box { display:flex; align-items:center; border:1.5px solid var(--border); border-radius:var(--radius-sm); overflow:hidden; }
+.qty-btn { width:36px; height:36px; border:none; background:var(--bg); font-size:1.1rem; cursor:pointer; transition:background 0.15s; }
+.qty-btn:hover { background:var(--primary-light); color:var(--primary); }
+#qty-input { width:48px; height:36px; border:none; text-align:center; font-family:var(--display); font-weight:800; font-size:1rem; border-left:1.5px solid var(--border); border-right:1.5px solid var(--border); }
+.action-row { display:flex; gap:1rem; }
+.reviews-section { margin-top:3rem; }
+.reviews-section h2 { font-family:var(--display); font-weight:900; font-size:1.3rem; margin-bottom:1.5rem; }
+.review-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm); padding:1.25rem; margin-bottom:1rem; }
+.review-header { display:flex; align-items:center; gap:0.75rem; margin-bottom:0.5rem; }
+.reviewer-avatar { width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,var(--primary),var(--accent)); display:flex; align-items:center; justify-content:center; color:white; font-weight:800; font-size:0.9rem; flex-shrink:0; }
+{% endblock %}
+
+{% block content %}
+<div style="margin-bottom:1rem">
+  <a href="/shop" style="font-size:0.875rem;color:var(--muted);display:inline-flex;align-items:center;gap:4px">
+    ← Back to shop
+  </a>
+</div>
+<div class="product-layout" id="product-detail">
+  <div style="text-align:center;padding:3rem;color:var(--muted)">Loading…</div>
+</div>
+{% endblock %}
+
+{% block extra_script %}
+<script>
+const pid = {{ pid }};
+(async () => {
+  const p = await API.get('/api/products/' + pid);
+  if (p.error) { document.getElementById('product-detail').innerHTML = '<div class="empty-state"><div class="emoji">😕</div><h3>Product not found</h3><p>This product may no longer be available.</p><a href="/shop" class="btn btn-primary">Back to shop</a></div>'; return; }
+
+  const stars = '★'.repeat(Math.round(p.reviews.reduce((s,r)=>s+r.rating,0)/(p.reviews.length||1))) + '☆'.repeat(5 - Math.round(p.reviews.reduce((s,r)=>s+r.rating,0)/(p.reviews.length||1)));
+
+  document.getElementById('product-detail').innerHTML = `
+    <div class="product-img-box">${p.image_emoji}</div>
+    <div>
+      <div class="product-cat">${p.category}</div>
+      <div class="product-name">${p.name}</div>
+      <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem">
+        <span class="stars">${stars}</span>
+        <span style="font-size:0.85rem;color:var(--muted)">${p.reviews.length} review${p.reviews.length!==1?'s':''}</span>
+      </div>
+      <div class="product-price">$${p.price.toFixed(2)}</div>
+      <div class="stock-badge"><span class="stock-dot"></span> ${p.stock} in stock</div>
+      <div class="product-desc">${p.description}</div>
+      <div class="qty-row">
+        <label style="font-size:0.85rem;font-weight:700">Quantity</label>
+        <div class="qty-box">
+          <button class="qty-btn" onclick="changeQty(-1)">−</button>
+          <input id="qty-input" value="1" type="number" min="1" max="${p.stock}">
+          <button class="qty-btn" onclick="changeQty(1)">+</button>
+        </div>
+      </div>
+      <div class="action-row">
+        <button class="btn btn-primary btn-lg" onclick="addToCart(${p.id},'${p.name.replace(/'/g,"\\'")}',${p.price},'${p.image_emoji}')">
+          🛒 Add to Cart
+        </button>
+        <a href="/cart" class="btn btn-outline btn-lg">View Cart</a>
+      </div>
+      <div class="reviews-section">
+        <h2>Customer Reviews</h2>
+        ${p.reviews.length ? p.reviews.map(r => `
+          <div class="review-card">
+            <div class="review-header">
+              <div class="reviewer-avatar">${r.user[0].toUpperCase()}</div>
+              <div>
+                <div style="font-weight:700;font-size:0.875rem">${r.user}</div>
+                <div class="stars" style="font-size:0.8rem">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div>
+              </div>
+              <div style="margin-left:auto;font-size:0.78rem;color:var(--muted)">${r.date}</div>
+            </div>
+            <p style="font-size:0.875rem;color:var(--muted)">${r.comment}</p>
+          </div>`).join('') : '<p style="color:var(--muted);font-size:0.875rem">No reviews yet. Be the first!</p>'}
+      </div>
+    </div>`;
+})();
+
+function changeQty(delta) {
+  const input = document.getElementById('qty-input');
+  const newVal = Math.max(1, parseInt(input.value||1) + delta);
+  input.value = newVal;
+}
+
+function addToCart(id, name, price, emoji) {
+  const qty = parseInt(document.getElementById('qty-input')?.value || 1);
+  const cart = getCart();
+  const ex = cart.find(i => i.id === id);
+  if (ex) ex.qty += qty; else cart.push({id, name, price, emoji, qty});
+  localStorage.setItem('se_cart', JSON.stringify(cart));
+  updateCartBadge();
+  toast(`${qty}× ${name} added to cart! 🛒`, 'success');
+}
+</script>
+{% endblock %}

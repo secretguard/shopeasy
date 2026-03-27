@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}My Orders — ShopEasy{% endblock %}
+{% block nav_orders %}active{% endblock %}
+
+{% block extra_style %}
+.order-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:1.5rem; margin-bottom:1rem; transition:box-shadow 0.2s; }
+.order-card:hover { box-shadow:var(--shadow); }
+.order-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; flex-wrap:wrap; gap:0.75rem; }
+.order-id { font-family:var(--mono,monospace); font-size:0.8rem; color:var(--muted); }
+.order-body { display:flex; align-items:center; gap:1rem; }
+.order-emoji { font-size:2.5rem; flex-shrink:0; width:60px; height:60px; background:linear-gradient(135deg,#fff5f2,#f0f4ff); border-radius:var(--radius-sm); display:flex; align-items:center; justify-content:center; }
+.order-info h4 { font-weight:700; margin-bottom:0.2rem; }
+.order-info p { font-size:0.82rem; color:var(--muted); }
+.order-total { font-family:var(--display); font-weight:800; font-size:1.1rem; color:var(--primary); }
+.order-footer { margin-top:1rem; padding-top:1rem; border-top:1px solid var(--border); display:flex; align-items:center; gap:1rem; flex-wrap:wrap; }
+.order-meta { font-size:0.78rem; color:var(--muted); display:flex; align-items:center; gap:4px; }
+.lab-banner { background:linear-gradient(135deg,#fff8e6,#fff0eb); border:1.5px solid #ffd166; border-radius:var(--radius); padding:1.25rem 1.5rem; margin-bottom:2rem; }
+.lab-banner h4 { font-family:var(--display); font-weight:800; margin-bottom:0.4rem; color:#7a4500; }
+.lab-banner p { font-size:0.875rem; color:#7a4500; }
+.lab-banner code { background:rgba(255,107,53,0.12); padding:0.1rem 0.4rem; border-radius:4px; font-size:0.82rem; }
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>📦 My Orders</h1>
+  <p>Track and manage your purchases</p>
+</div>
+
+<div style="background:#ecfdf5;border:1.5px solid #6ee7b7;border-radius:var(--radius);padding:1.25rem 1.5rem;margin-bottom:2rem">
+  <h4 style="font-family:var(--display);font-weight:800;margin-bottom:0.4rem;color:#065f46">🔒 BOLA fix in action</h4>
+  <p style="font-size:0.875rem;color:#065f46">Try running: <code style="background:#d1fae5;padding:0.1rem 0.4rem;border-radius:4px">curl http://localhost:5001/api/orders/3 -H "Authorization: Bearer &lt;alice_token&gt;"</code><br>
+  You will get a <strong>403 Forbidden</strong> — because the server now checks that Order #3 belongs to the requesting user before returning it.</p>
+</div>
+
+<div id="orders-container">
+  <div style="text-align:center;padding:3rem;color:var(--muted)">Loading your orders…</div>
+</div>
+{% endblock %}
+
+{% block extra_script %}
+<script>
+(async () => {
+  const user = getUser();
+  if (!user) { window.location.href = '/login?next=/orders'; return; }
+
+  const orders = await API.get('/api/orders');
+  const container = document.getElementById('orders-container');
+
+  if (!orders.length || orders.error) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="emoji">📦</div>
+        <h3>No orders yet</h3>
+        <p>Your orders will show up here once you buy something.</p>
+        <a href="/shop" class="btn btn-primary">Start Shopping</a>
+      </div>`;
+    return;
+  }
+
+  const statusColors = { delivered:'success', shipped:'info', processing:'warning', cancelled:'danger' };
+  container.innerHTML = orders.map(o => `
+    <div class="order-card">
+      <div class="order-header">
+        <span class="order-id">Order #${o.order_id}</span>
+        <span class="tag tag-${statusColors[o.status]||'info'}">${o.status.charAt(0).toUpperCase()+o.status.slice(1)}</span>
+      </div>
+      <div class="order-body">
+        <div class="order-emoji">${o.emoji}</div>
+        <div class="order-info" style="flex:1">
+          <h4>${o.product}</h4>
+          <p>Qty: ${o.qty} · Ordered ${o.date}</p>
+        </div>
+        <div class="order-total">$${o.total.toFixed(2)}</div>
+      </div>
+      <div class="order-footer">
+        <span class="order-meta">📍 ${o.address}</span>
+        <span class="order-meta">💳 •••• ${o.card_last4}</span>
+      </div>
+    </div>`).join('');
+})();
+</script>
+{% endblock %}

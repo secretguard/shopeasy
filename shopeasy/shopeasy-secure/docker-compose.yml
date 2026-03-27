@@ -1,0 +1,9 @@
+services:
+  shopeasy-secure:
+    build: .
+    container_name: shopeasy-secure-lab
+    ports:
+      - "5001:5001"
+    restart: unless-stopped
+    environment:
+      - JWT_SECRET=change-this-to-a-real-secret-in-production

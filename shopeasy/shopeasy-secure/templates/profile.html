@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block title %}My Profile — ShopEasy{% endblock %}
+
+{% block extra_style %}
+.profile-layout { display:grid; grid-template-columns:260px 1fr; gap:2rem; align-items:start; }
+@media(max-width:700px){ .profile-layout { grid-template-columns:1fr; } }
+.profile-sidebar { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:1.5rem; text-align:center; position:sticky; top:80px; }
+.avatar { width:72px; height:72px; border-radius:50%; background:linear-gradient(135deg,var(--primary),var(--accent)); display:flex; align-items:center; justify-content:center; color:white; font-family:var(--display); font-weight:900; font-size:1.75rem; margin:0 auto 1rem; }
+.profile-name { font-family:var(--display); font-weight:800; font-size:1.1rem; }
+.profile-email { font-size:0.82rem; color:var(--muted); margin-top:0.2rem; }
+.profile-role { margin-top:0.75rem; }
+.profile-nav { margin-top:1.5rem; }
+.profile-nav a { display:flex; align-items:center; gap:0.75rem; padding:0.6rem 0.75rem; border-radius:var(--radius-sm); color:var(--text); text-decoration:none; font-size:0.875rem; font-weight:600; transition:all 0.15s; }
+.profile-nav a:hover { background:var(--primary-light); color:var(--primary); }
+.info-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.5rem; }
+.info-item label { font-size:0.75rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.06em; display:block; margin-bottom:0.3rem; }
+.info-item p { font-weight:600; font-size:0.9rem; }
+.logout-btn { background:none; border:1.5px solid #ffd0cc; color:var(--accent); border-radius:100px; padding:0.5rem 1.25rem; font-family:var(--body); font-weight:700; font-size:0.85rem; cursor:pointer; transition:all 0.15s; margin-top:1.5rem; }
+.logout-btn:hover { background:#fff0eb; }
+.section-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:1.5rem; margin-bottom:1.5rem; }
+.section-card h3 { font-family:var(--display); font-weight:800; font-size:1.05rem; margin-bottom:1.25rem; }
+{% endblock %}
+
+{% block content %}
+<div class="profile-layout">
+  <div class="profile-sidebar" id="profile-sidebar">
+    <div style="text-align:center;padding:1rem;color:var(--muted)">Loading…</div>
+  </div>
+  <div>
+    <div class="section-card" id="profile-info">
+      <div style="color:var(--muted);font-size:0.875rem">Loading…</div>
+    </div>
+    <div class="section-card">
+      <h3>🔒 JWT Token Inspector</h3>
+      <p style="font-size:0.82rem;color:var(--muted);margin-bottom:1rem">Your session token. Notice what's different compared to the vulnerable version.</p>
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:1rem;font-size:0.72rem;font-family:monospace;word-break:break-all;color:var(--primary);margin-bottom:1rem" id="token-display"></div>
+      <button class="btn btn-ghost btn-sm" onclick="decodeToken()">Decode Token</button>
+      <div id="decoded-token" style="margin-top:1rem;display:none"></div>
+      <div style="background:#ecfdf5;border:1px solid #6ee7b7;border-radius:var(--radius-sm);padding:1rem;margin-top:1rem;font-size:0.82rem;color:#065f46">
+        <strong>✓ What's fixed here:</strong><br>
+        The token payload contains only <code style="font-family:monospace;background:#d1fae5;padding:0.1rem 0.3rem;border-radius:3px">user_id</code> and <code style="font-family:monospace;background:#d1fae5;padding:0.1rem 0.3rem;border-radius:3px">exp</code>.<br>
+        There is <strong>no role claim</strong> — so forging a token with <code style="font-family:monospace;background:#d1fae5;padding:0.1rem 0.3rem;border-radius:3px">role: admin</code> has no effect.<br>
+        The server always looks up the role from the database on every request.
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_script %}
+<script>
+(async () => {
+  const user = getUser();
+  if (!user) { window.location.href = '/login?next=/profile'; return; }
+  const token = localStorage.getItem('se_token');
+
+  document.getElementById('profile-sidebar').innerHTML = `
+    <div class="avatar">${(user.full_name||user.username)[0].toUpperCase()}</div>
+    <div class="profile-name">${user.full_name||user.username}</div>
+    <div class="profile-email">${user.username}</div>
+    <div class="profile-role"><span class="tag ${user.role==='admin'?'tag-danger':'tag-success'}">${user.role}</span></div>
+    <div class="profile-nav">
+      <a href="/orders">📦 My Orders</a>
+      <a href="/messages">💬 Messages</a>
+      <a href="/cart">🛒 Cart</a>
+    </div>
+    <button class="logout-btn" onclick="logout()">Sign Out</button>`;
+
+  const profile = await API.get('/api/profile');
+  document.getElementById('profile-info').innerHTML = `
+    <h3>Account Details</h3>
+    <div class="info-grid">
+      <div class="info-item"><label>Full name</label><p>${profile.full_name||'—'}</p></div>
+      <div class="info-item"><label>Username</label><p>${profile.username}</p></div>
+      <div class="info-item"><label>Email</label><p>${profile.email||'—'}</p></div>
+      <div class="info-item"><label>Role</label><p><span class="tag ${profile.role==='admin'?'tag-danger':'tag-success'}">${profile.role}</span></p></div>
+      <div class="info-item"><label>User ID</label><p>#${profile.id}</p></div>
+      <div class="info-item"><label>Address</label><p>${profile.address||'Not set'}</p></div>
+    </div>`;
+
+  if (token) {
+    document.getElementById('token-display').textContent = token;
+  }
+})();
+
+async function decodeToken() {
+  const token = localStorage.getItem('se_token');
+  const res = await API.post('/api/jwt/decode', {token});
+  const el = document.getElementById('decoded-token');
+  el.style.display = 'block';
+  if (res.error) {
+    el.innerHTML = `<p style="color:#e85520;font-size:0.82rem">⚠️ ${res.error}</p>`;
+    return;
+  }
+  el.innerHTML = `
+    <p style="font-size:0.78rem;font-weight:700;color:var(--muted);margin-bottom:0.5rem">PAYLOAD</p>
+    <pre style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:0.75rem;font-size:0.75rem;overflow-x:auto;margin-bottom:0.5rem">${JSON.stringify(res.payload,null,2)}</pre>
+    <p style="font-size:0.75rem;color:#059669;margin-top:0.25rem">✓ ${res.note}</p>
+    <p style="font-size:0.75rem;color:var(--muted);margin-top:0.25rem">Notice: no "role" field in the payload — the server never trusts a role from the token.</p>`;
+}
+
+function logout() {
+  localStorage.removeItem('se_token');
+  localStorage.removeItem('se_user');
+  window.location.href = '/';
+}
+</script>
+{% endblock %}
